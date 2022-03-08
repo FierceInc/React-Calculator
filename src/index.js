@@ -3,8 +3,9 @@
 import react from "react";
 import ReactDOM from "react-dom";
 import "./index.css";
-const projectName = "React Calculator";
+
 const endsWithOperator = /[x+/%-]$/;
+const endsWithDot = /[.]$/
 const styles = {
   noError: {
     color: "lime",
@@ -25,6 +26,7 @@ class App extends react.Component {
       previousValue: "0",
       formula: "0",
       evaluated: false,
+      currentSign: "",
       color: styles.noError,
     };
 
@@ -96,25 +98,33 @@ class App extends react.Component {
     try {
       if (!this.state.currentVal.includes("Limit")) {
         const value = e.target.value;
-        const { formula, previousValue, evaluated } = this.state;
+        const { formula, previousValue, evaluated,   currentSign} = this.state;
         this.setState({ evaluated: false });
         if (evaluated) {
           this.setState({ formula: previousValue + value });
         } else if (endsWithOperator.test(formula)) {
           if (value === "-") {
             this.setState({
-              formula: formula + value,
+              formula: formula.slice(0, -1).includes("-") ? formula : formula + value,
+                 currentSign: value,
+              currentVal: formula.slice(0, -1).includes("-") ? formula : formula + value,
             });
           } else {
             this.setState({
               formula: endsWithOperator.test(formula.slice(0, -1))
-                ? formula.slice(0, -1)
+                ? formula.slice(0, -2) + value
+                : formula.slice(0, -1) + value,
+                 currentSign: value,
+              currentVal: endsWithOperator.test(formula.slice(0, -1))
+                ? formula.slice(0, -2) + value
                 : formula.slice(0, -1) + value,
             });
           }
         } else {
           this.setState({
             formula: formula + value,
+               currentSign: value,
+            currentVal: formula
           });
         }
       }
@@ -142,6 +152,7 @@ class App extends react.Component {
       } else {
         this.setState({
           formula: formula === "0" ? formula.replace("0", "") + value : formula + value,
+          currentVal: formula === "0" ? formula.replace("0", "") + value : formula + value,
         });
       }
     }
@@ -149,7 +160,7 @@ class App extends react.Component {
 
   handleDecimal(e) {
     const value = e.target.value;
-    const { formula, evaluated} = this.state;
+    const { formula, evaluated, currentSign, currentVal} = this.state;
     this.setState({ evaluated: false });
     if(evaluated) {
       this.setState({
@@ -160,9 +171,10 @@ class App extends react.Component {
     }
      else {
         this.setState({
-        formula: formula ? formula + value : "0.",
+         formula: endsWithDot.test(formula) ? formula : currentSign === "." ? formula : formula + value,
         previousValue: "0",
-        currentVal: "0"
+        currentVal: endsWithDot.test(formula) ? formula : currentSign === "." ? formula : formula + value,
+          currentSign: value
       });
      }
   }
@@ -191,12 +203,13 @@ class App extends react.Component {
       currentVal: "0",
       previousValue: "0",
       evaluated: false,
+       currentSign: ""
     });
   }
 
   render() {
     return (
-      <div className="calculator">
+     <div className="calculator">
         <h1>React Calculator</h1>
         <FormulaScreen formula={this.state.formula} />
         <OutputScreen

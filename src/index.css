@@ -89,7 +89,7 @@ body {
     grid-template-columns: repeat(4, auto);
 }
 #calculate{
-    position: absolute;
+    position: relative;
     left: 0;
     width: 100%;
     padding: 20px;
